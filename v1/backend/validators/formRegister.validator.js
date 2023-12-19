@@ -1,7 +1,6 @@
 const { z } = require("zod");
 const { BadRequest } = require("../errors/httpErrors");
 const {
-  RESOURCE_NOT_FOUND,
   INVALID_REQUEST_PARAMETERS,
 } = require("../errors/httpErrorCodes");
 const emailSchema = z

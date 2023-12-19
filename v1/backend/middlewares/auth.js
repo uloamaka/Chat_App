@@ -28,19 +28,24 @@ const userAuth = (req, res, next) => {
   if (token) {
     jwt.verify(token, jwtSecret, (err, decodedToken) => {
       if (err) {
-        throw new Unauthorized(err.message, USER_NOT_VERIFIED);
+        return next(new Unauthorized(err.message, USER_NOT_VERIFIED));
       } else {
-        if (decodedToken.role !== "Basic") {
-          throw new Unauthorized("Not authorized", USER_NOT_VERIFIED);
+        // console.log(decodedToken)
+        if (decodedToken.role !== "basic") {
+          return next(new Unauthorized("Not authorized", USER_NOT_VERIFIED));
         } else {
+          req.user = {
+            id: decodedToken.id,
+            username: decodedToken.username,
+            email: decodedToken.email,
+          };
           next();
         }
       }
     });
   } else {
-    throw new Unauthorized(
-      "Not authorized, token not available",
-      USER_NOT_VERIFIED
+    return next(
+      new Unauthorized("Not authorized, token not available", USER_NOT_VERIFIED)
     );
   }
 };
