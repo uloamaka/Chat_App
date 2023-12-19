@@ -1,0 +1,15 @@
+
+.email-body {
+  font-family: sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+}
+.email-button {
+  display: inline-block;
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: #fff;
+  text-decoration: none;
+  border-radius: 5px;
+  font-size: 14px;
+}

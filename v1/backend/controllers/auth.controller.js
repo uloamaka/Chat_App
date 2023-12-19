@@ -39,6 +39,8 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+const { resetPasswordEmail, confirmationEmail } = require("../utils/mailer/email.service");
+
 const registerUser = async (req, res, next) => {
   const userSchema = z.object({
     email: emailSchema,
@@ -62,9 +64,18 @@ const registerUser = async (req, res, next) => {
       password: hash,
     });
     const maxAge = 1 * 60 * 60;
-    const token = jwt.sign({ id: user._id, role: user.role }, jwtSecret, {
-      expiresIn: maxAge, // 1hrs in sec
-    });
+    const token = jwt.sign(
+      {
+        id: user._id,
+        role: user.role,
+        email: user.email,
+        username: user.username,
+      },
+      jwtSecret,
+      {
+        expiresIn: maxAge, // 1hrs in sec
+      }
+    );
     res.cookie("jwt", token, {
       httpOnly: true,
       maxAge: maxAge * 1000, // 1hrs in ms
@@ -102,9 +113,18 @@ const loginUser = async (req, res, next) => {
     }
     if (result) {
       const maxAge = 3 * 60 * 60;
-      const token = jwt.sign({ id: user._id, role: user.role }, jwtSecret, {
-        expiresIn: maxAge, // 3hrs in seconds
-      });
+      const token = jwt.sign(
+        {
+          id: user._id,
+          role: user.role,
+          email: user.email,
+          username: user.username,
+        },
+        jwtSecret,
+        {
+          expiresIn: maxAge, // 3hrs in seconds
+        }
+      );
 
       res.cookie("jwt", token, {
         httpOnly: true,
@@ -148,8 +168,6 @@ const deleteUser = async (req, res, next) => {
   return res.noContent();
 };
 
-const emailTemplate = fs.readFileSync("./templates/resetPassword.hbs", "utf-8");
-const compiledTemplate = hbs.compile(emailTemplate);
 const forgotPassword = async (req, res, next) => {
   const { email } = req.body;
   const user = await User.findOne({ email });
@@ -165,24 +183,12 @@ const forgotPassword = async (req, res, next) => {
   const resetLink = `http://localhost:3000/api/v1/auth/reset-password/${userId}/${resetToken}`;
   console.log(resetLink);
 
-  const emailContent = compiledTemplate({
-    username: user.email,
-    resetLink,
-  });
-  await transporter.sendMail({
-    from: "<noreply>unique@outlook.com",
-    to: user.email,
-    subject: "Password Reset Link",
-    html: emailContent,
-  });
+  const username = user.username;
+  await resetPasswordEmail(email, username, resetLink);
   return res.ok("Reset link sent successfully");
 };
 
-const confirmationTemplate = fs.readFileSync(
-  "./templates/confirmationEmail.hbs",
-  "utf-8"
-);
-const compiledConfirmationTemplate = hbs.compile(confirmationTemplate);
+
 const resetPassword = async (req, res) => {
   const { resetToken, userId } = req.params;
   const { newPassword, confirmPassword } = req.body;
@@ -221,13 +227,10 @@ const resetPassword = async (req, res) => {
       new: true,
     }
   );
+  const username = user.username,
+    email = user.email;
 
-  await transporter.sendMail({
-    from: "<noreply>unique@outlook.com",
-    to: user.email,
-    subject: "Password Reset Confirmation",
-    html: compiledConfirmationTemplate({ username: user.username }),
-  });
+  await confirmationEmail(email, username);
   return res.ok("Password reset successful");
 };
 
