@@ -1,8 +1,5 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const nodemailer = require("nodemailer");
-const hbs = require("handlebars");
-const fs = require("fs");
 require("dotenv").config();
 const { z } = require("zod");
 const {
@@ -17,7 +14,6 @@ const User = require("../models/user.model");
 const {
   ResourceNotFound,
   BadRequest,
-  ServerError,
   Conflict,
   Unauthorized,
 } = require("../errors/httpErrors");
@@ -28,20 +24,28 @@ const {
   MALFORMED_TOKEN,
   EXPIRED_TOKEN,
 } = require("../errors/httpErrorCodes");
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.EMAIL,
-    pass: process.env.PASS,
-  },
-  tls: {
-    rejectUnauthorized: false,
-  },
-});
 
-const { resetPasswordEmail, confirmationEmail } = require("../utils/mailer/email.service");
-
+const {
+  resetPasswordEmail,
+  confirmationEmail,
+} = require("../utils/mailer/email.service");
+const { acceptInvitationFunc } = require("../utils/inviteHelpers");
 const registerUser = async (req, res, next) => {
+  let inviterId;
+  const invite_token = req.query.invite_token;
+  const urlEmail = req.query.receiver_email;
+  // if (invite_token) {
+  //   accceptInvitationFunc(invite_token);
+  // }
+  // next();
+  if (invite_token) {
+    const updatedInvitation = await acceptInvitationFunc(
+      invite_token,
+      urlEmail
+    );
+    inviterId = updatedInvitation.sender;
+  }
+
   const userSchema = z.object({
     email: emailSchema,
     password: passwordSchema,
@@ -58,10 +62,12 @@ const registerUser = async (req, res, next) => {
     if (err) {
       throw new Unauthorized("Error hashing password", MALFORMED_TOKEN);
     }
+    console.log("inviterId: " + inviterId);
     const user = await User.create({
       username,
       email,
       password: hash,
+      contacts: inviterId ? [inviterId] : [],
     });
     const maxAge = 1 * 60 * 60;
     const token = jwt.sign(
@@ -188,7 +194,6 @@ const forgotPassword = async (req, res, next) => {
   return res.ok("Reset link sent successfully");
 };
 
-
 const resetPassword = async (req, res) => {
   const { resetToken, userId } = req.params;
   const { newPassword, confirmPassword } = req.body;
@@ -213,7 +218,6 @@ const resetPassword = async (req, res) => {
     throw new Unauthorized(err.message, MALFORMED_TOKEN);
   }
   const currentTime = Math.floor(Date.now() / 1000);
-  //check if the token is still valid
   if (!decodedToken || (decodedToken.exp && decodedToken.exp < currentTime)) {
     throw new Unauthorized("Reset token is expired", EXPIRED_TOKEN);
   }
