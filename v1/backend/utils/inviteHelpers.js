@@ -1,25 +1,22 @@
 const jwt = require("jsonwebtoken");
 const mongoose = require("mongoose");
 const jwtSecret = process.env.jwtSecret;
-const baseUrl = process.env.baseUrl;
+const CLIENT_URL = process.env.baseUrl;
 const InviteFriend = require("../models/inviteFriend.model");
+const User = require("../models/user.model")
 const { newContactEmail } = require("./mailer/email.service");
 const {
   ResourceNotFound,
   BadRequest,
-  ServerError,
-  Conflict,
   Unauthorized,
 } = require("../errors/httpErrors");
 const {
   RESOURCE_NOT_FOUND,
   INVALID_REQUEST_PARAMETERS,
-  EXISTING_USER_EMAIL,
   MALFORMED_TOKEN,
   EXPIRED_TOKEN,
 } = require("../errors/httpErrorCodes");
 
-const maxAge = 7 * 24 * 60 * 60;
 
 const generateToken = async (loggedInUser) => {
   const token = jwt.sign(
@@ -28,7 +25,7 @@ const generateToken = async (loggedInUser) => {
       inviteSenderEmail: loggedInUser.email,
     },
     jwtSecret,
-    { expiresIn: maxAge }
+    { expiresIn: 7 * 24 * 60 * 60}
   );
   return token;
 };
@@ -36,12 +33,13 @@ const generateToken = async (loggedInUser) => {
 const verifyToken = async (invite_token) => {
   try {
     const decodedToken = jwt.verify(invite_token, jwtSecret);
+
     const currentTime = Math.floor(Date.now() / 1000);
+
     if (!decodedToken || (decodedToken.exp && decodedToken.exp < currentTime)) {
       throw new Unauthorized("Reset token is expired", EXPIRED_TOKEN);
     }
 
-    console.log(decodedToken.inviteSenderId);
     return {
       senderId: decodedToken.inviteSenderId,
     };
@@ -51,8 +49,9 @@ const verifyToken = async (invite_token) => {
 };
 
 const invitationRegUrl = async (token, email) => {
-  return `${baseUrl}api/v1/auth/register?invite_token=${token}&receiver_email=${email}`;
+  return `${CLIENT_URL}api/v1/auth/register?invite_token=${token}&receiver_email=${email}`;
 };
+
 // Generate a single token for all invitations
 const invitationFunc = async (emailList, loggedInUser) => {
   try {
@@ -105,7 +104,6 @@ const invitationFunc = async (emailList, loggedInUser) => {
 
 const acceptInvitationFunc = async (invite_token, urlEmail) => {
   result = await verifyToken(invite_token);
-  console.log(result.senderId);
   const inviterId = result.senderId;
   // fetch InviteFriends to update inviteStatus to accepted
  const updatedInvitation = await InviteFriend.findOneAndUpdate(
@@ -116,9 +114,29 @@ const acceptInvitationFunc = async (invite_token, urlEmail) => {
    },
    { inviteStatus: "accepted", inviteToken: null },
    { new: true }
- );
+  );
 
   return updatedInvitation; 
 };
 
-module.exports = { invitationFunc, acceptInvitationFunc };
+const updateSendersContactFunc = async (inviterId, user_id) => {
+  const updatedSendersContactList = await User.findOneAndUpdate(
+    { _id: inviterId._id },
+    {
+      contacts: user_id._id,
+    },
+    { new: true }
+  );
+  if (!updatedSendersContactList) {
+     throw new ResourceNotFound(
+       "Inviter was not found in DB",
+       RESOURCE_NOT_FOUND
+     );
+  }
+}
+
+module.exports = {
+  invitationFunc,
+  acceptInvitationFunc,
+  updateSendersContactFunc,
+};
