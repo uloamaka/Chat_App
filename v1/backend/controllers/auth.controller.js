@@ -8,7 +8,7 @@ const {
   usernameSchema,
 } = require("../validators/formRegister.validator");
 const jwtSecret = process.env.jwtSecret;
-const baseUrl = process.env.baseUrl;
+const CLIENT_URL = process.env.baseUrl;
 const User = require("../models/user.model");
 
 const {
@@ -29,15 +29,15 @@ const {
   resetPasswordEmail,
   confirmationEmail,
 } = require("../utils/mailer/email.service");
-const { acceptInvitationFunc } = require("../utils/inviteHelpers");
-const registerUser = async (req, res, next) => {
+const {
+  acceptInvitationFunc,
+  updateSendersContactFunc,
+} = require("../utils/inviteHelpers");
+
+const registerUser = async (req, res) => {
   let inviterId;
   const invite_token = req.query.invite_token;
   const urlEmail = req.query.receiver_email;
-  // if (invite_token) {
-  //   accceptInvitationFunc(invite_token);
-  // }
-  // next();
   if (invite_token) {
     const updatedInvitation = await acceptInvitationFunc(
       invite_token,
@@ -45,31 +45,35 @@ const registerUser = async (req, res, next) => {
     );
     inviterId = updatedInvitation.sender;
   }
-
+  // Validate user Input
   const userSchema = z.object({
     email: emailSchema,
     password: passwordSchema,
     username: usernameSchema,
   });
-  const validUser = userSchema.parse(req.body);
-  const { username, email, password } = validUser;
-  const userExist = await User.findOne({ email });
 
+  const validUser = userSchema.parse(req.body);
+
+  const { username, email, password } = validUser;
+  // Check for existing user
+  const userExist = await User.findOne({ email });
   if (userExist) {
     throw new Conflict("Email already exists", EXISTING_USER_EMAIL);
   }
+
   bcrypt.hash(password, 10, async function (err, hash) {
     if (err) {
       throw new Unauthorized("Error hashing password", MALFORMED_TOKEN);
     }
-    console.log("inviterId: " + inviterId);
     const user = await User.create({
       username,
       email,
       password: hash,
       contacts: inviterId ? [inviterId] : [],
     });
-    const maxAge = 1 * 60 * 60;
+
+    const maxAge = 6 * 60 * 60;
+
     const token = jwt.sign(
       {
         id: user._id,
@@ -79,20 +83,21 @@ const registerUser = async (req, res, next) => {
       },
       jwtSecret,
       {
-        expiresIn: maxAge, // 1hrs in sec
+        expiresIn: maxAge,
       }
     );
     res.cookie("jwt", token, {
       httpOnly: true,
-      maxAge: maxAge * 1000, // 1hrs in ms
+      maxAge: maxAge * 1000,
     });
-    let formattedUser = {
-      username,
-      email,
-      user_id: user._id,
-    };
+
+    let user_id = user._id;
+    // Update sender's contacts if applicable
+    if (invite_token) {
+      updateSendersContactFunc(inviterId, user_id);
+    }
     return res.created({
-      message: formattedUser,
+      message: { username, email, user_id },
     });
   });
 };
@@ -118,7 +123,7 @@ const loginUser = async (req, res, next) => {
       throw new Error("Error comparing passwords");
     }
     if (result) {
-      const maxAge = 3 * 60 * 60;
+      const maxAge = 6 * 60 * 60;
       const token = jwt.sign(
         {
           id: user._id,
@@ -185,9 +190,8 @@ const forgotPassword = async (req, res, next) => {
     expiresIn: "1h",
   });
   let userId = user._id;
-  // const resetLink = `${baseUrl}api/v1/auth/reset-password/${userId}/${resetToken}`;
-  const resetLink = `http://localhost:3000/api/v1/auth/reset-password/${userId}/${resetToken}`;
-  console.log(resetLink);
+  const resetLink = `${CLIENT_URL}api/v1/auth/reset-password/${userId}/${resetToken}`;
+  //const resetLink = `http://localhost:3000/api/v1/auth/reset-password/${userId}/${resetToken}`;
 
   const username = user.username;
   await resetPasswordEmail(email, username, resetLink);
