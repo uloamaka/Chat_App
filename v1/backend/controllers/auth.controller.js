@@ -27,7 +27,7 @@ const {
 
 const {
   resetPasswordEmail,
-  confirmationEmail,
+  sendConfirmationEmail,
 } = require("../utils/mailer/email.service");
 const {
   acceptInvitationFunc,
@@ -43,7 +43,7 @@ const registerUser = async (req, res) => {
       invite_token,
       urlEmail
     );
-    inviterId = updatedInvitation.sender;
+    inviterId = updatedInvitation.sender; // Get the inviter's Id after verification
   }
   // Validate user Input
   const userSchema = z.object({
@@ -51,10 +51,9 @@ const registerUser = async (req, res) => {
     password: passwordSchema,
     username: usernameSchema,
   });
-
   const validUser = userSchema.parse(req.body);
-
   const { username, email, password } = validUser;
+
   // Check for existing user
   const userExist = await User.findOne({ email });
   if (userExist) {
@@ -69,7 +68,7 @@ const registerUser = async (req, res) => {
       username,
       email,
       password: hash,
-      contacts: inviterId ? [inviterId] : [],
+      contacts: inviterId ? [inviterId] : [],  // Add inviter's Id to user's contact list if inviter's Id is avialable
     });
 
     const maxAge = 6 * 60 * 60;
@@ -142,7 +141,7 @@ const loginUser = async (req, res, next) => {
         maxAge: maxAge * 1000,
       });
     }
-    return res.ok({ message: "Login successful", user: user._id });
+    return res.ok({ message: "Login successful", user_id: user._id });
   });
 };
 
@@ -238,7 +237,7 @@ const resetPassword = async (req, res) => {
   const username = user.username,
     email = user.email;
 
-  await confirmationEmail(email, username);
+  await sendConfirmationEmail(email, username);
   return res.ok("Password reset successful");
 };
 

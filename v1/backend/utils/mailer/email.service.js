@@ -40,7 +40,8 @@ async function resetPasswordEmail(email, username, resetLink) {
   };
   transporter.sendMail(options, emailSent);
 }
-async function confirmationEmail(email, username) {
+
+async function sendConfirmationEmail(email, username) {
   const confirmReset = await confirmEmailTemplate(username);
   const options = {
     from: process.env.EMAIL,
@@ -51,7 +52,7 @@ async function confirmationEmail(email, username) {
   transporter.sendMail(options, emailSent);
 }
 
-async function newContactEmail(email, senderEmail, link) {
+async function sendInvitationEmail(email, senderEmail, link) {
   const invitedLink = await contactInviteTemplate(senderEmail, link);
   const options = {
     to: email,
@@ -108,8 +109,8 @@ module.exports = {
   // userSignupEmail,
   // userWelcomeNotification,
   resetPasswordEmail,
-  newContactEmail,
-  confirmationEmail,
+  sendInvitationEmail,
+  sendConfirmationEmail,
   //   sendNewContactAcceptedEmail,
 
   //   subscribeToNewsLetter,
