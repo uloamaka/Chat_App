@@ -11,6 +11,7 @@ const jwtSecret = process.env.jwtSecret;
 const CLIENT_URL = process.env.baseUrl;
 const Chat = require("../models/chat.model");
 const User = require("../models/user.model");
+const Message = require("../models/message.model");
 
 const {
   ResourceNotFound,
@@ -55,21 +56,22 @@ const accessUserChat = async (req, res) => {
     "participants",
     "-password -contacts"
   );
+
   return res.created(fullChat);
 };
 
 const fetchUserChats = async (req, res) => {
   Chat.find({ participants: { $elemMatch: { $eq: req.user.id } } })
-    .populate("particpants", "-password")
-        .populate("latestMessage")
-        .sort({ updatedAt: -1 })
-      .then(async (results) => {
-          results = await User.populate(results, {
-              path: "latestMessage.sender",
-              select: "name email"
-          })
-          return res.ok(results);
-    })
+    .populate("participants", "-password -contacts -role")
+    .populate("latestMessage")
+    .sort({ updatedAt: -1 })
+    .then(async (results) => {
+      results = await User.populate(results, {
+        path: "latestMessage.sender",
+        select: "name pic email ",
+      });
+      return res.ok(results);
+    });
 };
 
 module.exports = { accessUserChat, fetchUserChats };
