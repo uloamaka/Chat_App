@@ -13,7 +13,7 @@ const {
   //   MALFORMED_TOKEN,
   //   EXPIRED_TOKEN,
 } = require("../errors/httpErrorCodes");
-const { invitationFunc } = require("../utils/inviteHelpers");
+const { sendInvitationFunc } = require("../utils/inviteHelpers");
 
 const InviteFriend = require("../models/inviteFriend.model");
 
@@ -38,7 +38,7 @@ const inviteFriend = async (req, res) => {
       INVALID_REQUEST_PARAMETERS
     );
   }
-  await invitationFunc(emailList, loggedInUser);
+  await sendInvitationFunc(emailList, loggedInUser);
 
   return res.ok({ message: "Invitations sent successfully" });
 };

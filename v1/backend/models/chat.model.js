@@ -3,6 +3,7 @@ const { Schema } = mongoose;
 
 const ChatSchema = new Schema(
   {
+    chatName: String,
     participants: [
       {
         type: Schema.Types.ObjectId,

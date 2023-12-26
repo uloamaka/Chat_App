@@ -14,6 +14,11 @@ const UserSchema = new Schema(
     password: {
       type: String,
     },
+    pic: {
+      type: String,
+      default:
+        "https://res.cloudinary.com/dsffatdpd/image/upload/v1685691602/baca/logo_aqssg3.jpg",
+    },
     role: {
       type: String,
       enum: ["admin", "basic"],
@@ -42,5 +47,5 @@ const UserSchema = new Schema(
   },
   { require: true }
 );
-const User = mongoose.model("user", UserSchema);
+const User = mongoose.model("User", UserSchema);
 module.exports = User;
