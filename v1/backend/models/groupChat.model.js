@@ -12,7 +12,13 @@ const groupChatSchema = new Schema(
     },
     status: { type: String },
     is_admin: [{ type: Schema.Types.ObjectId, ref: "User" }],
-    Participants: [{ type: Schema.Types.ObjectId, ref: "User" }],
+    participants: [{ type: Schema.Types.ObjectId, ref: "User" }],
+    latestMessage: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Message",
+      },
+    ],
   },
   { timestamps: true }
 );
