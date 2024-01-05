@@ -12,7 +12,7 @@ const CLIENT_URL = process.env.baseUrl;
 const GroupChat = require("../models/groupChat.model");
 const User = require("../models/user.model");
 const { imageUploader } = require("../utils/cloudinary");
-const { isGroupAdmin } = require("../utils/chatHelper");
+const { isGroupAdmin, GroupExist } = require("../utils/chatHelper");
 const {
   ResourceNotFound,
   BadRequest,
@@ -41,7 +41,9 @@ const createGroupChat = async (req, res) => {
 
   const newGroupChat = await GroupChat.create({
     name,
-    icon: icon || "https://res.cloudinary.com/dsffatdpd/image/upload/v1685691602/baca/logo_aqssg3.jpg",
+    icon:
+      icon ||
+      "https://res.cloudinary.com/dsffatdpd/image/upload/v1685691602/baca/logo_aqssg3.jpg",
     status,
     participants,
     creator_id: req.user.id,
@@ -76,6 +78,13 @@ const renameGroupChat = async (req, res) => {
     throw new BadRequest(
       "Provide the new name and group_chat_Id",
       INVALID_REQUEST_PARAMETERS
+    );
+  }
+  const groupExist = await GroupExist(groupChatId);
+  if (!groupExist) {
+    throw new ResourceNotFound(
+      `The Group with the ID:${groupChatId} was not found`,
+      RESOURCE_NOT_FOUND
     );
   }
   const isAdmin = await isGroupAdmin(groupChatId, req.user.id);
@@ -113,6 +122,13 @@ const editGroupStatus = async (req, res) => {
       INVALID_REQUEST_PARAMETERS
     );
   }
+  const groupExist = await GroupExist(groupChatId);
+  if (!groupExist) {
+    throw new ResourceNotFound(
+      `The Group with the ID:${groupChatId} was not found`,
+      RESOURCE_NOT_FOUND
+    );
+  }
   const isAdmin = await isGroupAdmin(groupChatId, req.user.id);
   if (!isAdmin) {
     throw new Unauthorized(
@@ -136,7 +152,7 @@ const editGroupStatus = async (req, res) => {
       RESOURCE_NOT_FOUND
     );
   }
-  return res.ok( updatedGroupStatus);
+  return res.ok(updatedGroupStatus);
 };
 
 const editGroupIcon = async (req, res) => {
@@ -145,6 +161,13 @@ const editGroupIcon = async (req, res) => {
     throw new BadRequest(
       "Provide the group_chat_Id",
       INVALID_REQUEST_PARAMETERS
+    );
+  }
+  const groupExist = await GroupExist(groupChatId);
+  if (!groupExist) {
+    throw new ResourceNotFound(
+      `The Group with the ID:${groupChatId} was not found`,
+      RESOURCE_NOT_FOUND
     );
   }
   if (!req.file) {
@@ -185,11 +208,17 @@ const addGroupMember = async (req, res) => {
 
   if (!userId || !groupChatId) {
     throw new BadRequest(
-      "Provide the new name and group_chat_Id",
+      "Provide the user_id and group_chat_Id",
       INVALID_REQUEST_PARAMETERS
     );
   }
-
+  const groupExist = await GroupExist(groupChatId);
+  if (!groupExist) {
+    throw new ResourceNotFound(
+      `The Group with the ID:${groupChatId} was not found`,
+      RESOURCE_NOT_FOUND
+    );
+  }
   const isAdmin = await isGroupAdmin(groupChatId, req.user.id);
   if (!isAdmin) {
     throw new Unauthorized(
@@ -211,7 +240,7 @@ const addGroupMember = async (req, res) => {
       RESOURCE_NOT_FOUND
     );
   }
-  return res.ok("Added a new member successfully", addedMember);
+  return res.ok({ message: "Added a new member successfully", addedMember });
 };
 
 const removeGroupMember = async (req, res) => {
@@ -223,7 +252,13 @@ const removeGroupMember = async (req, res) => {
       INVALID_REQUEST_PARAMETERS
     );
   }
-
+  const groupExist = await GroupExist(groupChatId);
+  if (!groupExist) {
+    throw new ResourceNotFound(
+      `The Group with the ID:${groupChatId} was not found`,
+      RESOURCE_NOT_FOUND
+    );
+  }
   const isAdmin = await isGroupAdmin(groupChatId, req.user.id);
   if (!isAdmin) {
     throw new Unauthorized(
@@ -245,7 +280,7 @@ const removeGroupMember = async (req, res) => {
       RESOURCE_NOT_FOUND
     );
   }
-  return res.ok("Removed a member successfully", removedMember);
+  return res.ok({ message: "Removed a member successfully", removedMember });
 };
 
 const deleteGroupChat = async (req, res) => {
@@ -257,7 +292,13 @@ const deleteGroupChat = async (req, res) => {
       INVALID_REQUEST_PARAMETERS
     );
   }
-
+  const groupExist = await GroupExist(groupChatId);
+  if (!groupExist) {
+    throw new ResourceNotFound(
+      `The Group with the ID:${groupChatId} was not found`,
+      RESOURCE_NOT_FOUND
+    );
+  }
   const isAdmin = await isGroupAdmin(groupChatId, req.user.id);
   if (!isAdmin) {
     throw new Unauthorized(
@@ -283,6 +324,13 @@ const exitGroupChat = async (req, res) => {
       INVALID_REQUEST_PARAMETERS
     );
   }
+  const groupExist = await GroupExist(groupChatId);
+  if (!groupExist) {
+    throw new ResourceNotFound(
+      `The Group with the ID:${groupChatId} was not found`,
+      RESOURCE_NOT_FOUND
+    );
+  }
 
   const leftGroup = await GroupChat.findByIdAndUpdate(
     groupChatId,
@@ -298,7 +346,7 @@ const exitGroupChat = async (req, res) => {
       RESOURCE_NOT_FOUND
     );
   }
-  return res.ok("Removed a member successfully", removedMember);
+  return res.ok({ message: "left Group successfully", removedMember });
 };
 module.exports = {
   createGroupChat,

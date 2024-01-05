@@ -26,16 +26,29 @@ const {
 } = require("../errors/httpErrorCodes");
 
 const allUsers = async (req, res) => {
+  // if (req.user || req.user.id) {
+  //     throw new BadRequest("missing jwt token", INVALID_REQUEST_PARAMETERS);
+  //   }
   const keyword = req.query.search
     ? {
         $or: [
-          { name: { $regex: req.query.search, $options: "i" } },
-          { email: { $regex: req.query.search, $options: "i" } },
+          { username: { $regex: req.query.search, $options: "i" } },
+          {
+            email: {
+              $regex: req.query.search,
+
+              $options: "i",
+            },
+          },
         ],
       }
     : {};
-  const users = await User.find(keyword).find({ _id: { $ne: req.user.id } });
-  return res.ok(users);
+
+  const users = await User.find({
+    ...keyword,
+    _id: { $ne: req.user.id }, 
+  });
+  res.ok(users);
 };
 
 module.exports = { allUsers };

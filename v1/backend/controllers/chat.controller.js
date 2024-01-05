@@ -57,7 +57,7 @@ const accessUserChat = async (req, res) => {
     "-password -contacts"
   );
 
-  return res.created(fullChat);
+  return res.created("Chat created successfully", fullChat);
 };
 
 const fetchUserChats = async (req, res) => {
