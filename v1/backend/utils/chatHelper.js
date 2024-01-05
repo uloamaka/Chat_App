@@ -21,6 +21,12 @@ const isGroupAdmin = async (groupChatId, userId) => {
   return result ? true : false;
 };
 
+const GroupExist = async (groupChatId) => {
+     const result = await GroupChat.findById(groupChatId)
+     return result ? true : false; 
+}
+
 module.exports = {
   isGroupAdmin,
+  GroupExist,
 };

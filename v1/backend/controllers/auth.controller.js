@@ -68,7 +68,7 @@ const registerUser = async (req, res) => {
       username,
       email,
       password: hash,
-      contacts: inviterId ? [inviterId] : [],  // Add inviter's Id to user's contact list if inviter's Id is avialable
+      contacts: inviterId ? [inviterId] : [], // Add inviter's Id to user's contact list if inviter's Id is avialable
     });
 
     const maxAge = 6 * 60 * 60;
@@ -117,22 +117,26 @@ const loginUser = async (req, res, next) => {
       RESOURCE_NOT_FOUND
     );
   }
+    const safeUser = {
+      _id: user._id,
+      role: user.role,
+      email: user.email,
+      username: user.username,
+      pic: user.pic,
+    };
   bcrypt.compare(password, user.password, (err, result) => {
     if (err) {
       throw new Error("Error comparing passwords");
     }
     if (result) {
-      const maxAge = 6 * 60 * 60;
+      const maxAge = 1 * 60 * 60;
       const token = jwt.sign(
         {
-          id: user._id,
-          role: user.role,
-          email: user.email,
-          username: user.username,
+          safeUser,
         },
         jwtSecret,
         {
-          expiresIn: maxAge, // 3hrs in seconds
+          expiresIn: maxAge * 1000, 
         }
       );
 
@@ -141,7 +145,11 @@ const loginUser = async (req, res, next) => {
         maxAge: maxAge * 1000,
       });
     }
-    return res.ok({ message: "Login successful", user_id: user._id });
+    console.log(safeUser)
+    return res.ok({
+      message: "Login successful",
+      user: safeUser,
+    });
   });
 };
 

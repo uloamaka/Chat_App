@@ -30,14 +30,14 @@ const userAuth = (req, res, next) => {
       if (err) {
         return next(new Unauthorized(err.message, USER_NOT_VERIFIED));
       } else {
-        // console.log(decodedToken)
-        if (decodedToken.role !== "basic") {
+        if (decodedToken.safeUser.role !== "basic") {
           return next(new Unauthorized("Not authorized", USER_NOT_VERIFIED));
         } else {
           req.user = {
-            id: decodedToken.id,
-            username: decodedToken.username,
-            email: decodedToken.email,
+            id: decodedToken.safeUser._id,
+            username: decodedToken.safeUser.username,
+            email: decodedToken.safeUser.email,
+            pic: decodedToken.safeUser.pic,
           };
           next();
         }
