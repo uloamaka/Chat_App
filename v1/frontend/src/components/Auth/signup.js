@@ -40,7 +40,7 @@ const Signup = () => {
           "Content-type": "application/json",
         },
       };
-      const { data } = await axios.post(
+      await axios.post(
         "/api/v1/auth/register",
         { username, email, password },
         config

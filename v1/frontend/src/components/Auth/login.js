@@ -7,10 +7,10 @@ import {
   InputRightElement,
   Button,
   Link as ChakraLink,
-  LinkProps,
 } from "@chakra-ui/react";
 import React, { useState } from "react";
 import { Link as ReactRouterLink } from "react-router-dom";
+import { useHistory } from "react-router-dom";
 import { useToast } from "@chakra-ui/react";
 import axios from "axios";
 
@@ -18,13 +18,15 @@ const Login = () => {
   const [show, setShow] = useState(false);
   const [email, setEmail] = useState();
   const [password, setPassword] = useState();
-  const [loading, setloading] = useState(false);
-  const toast = useToast();
+  const [loading, setLoading] = useState(false);
 
+  const toast = useToast();
+  const history = useHistory();
   const handleClick = () => setShow(!show);
 
-  const submitHandler = async () => {
-    setloading(true);
+  const submitHandler = async (e) => {
+    e.preventDefault();
+    setLoading(true);
     if (!email || !password) {
       toast({
         title: "Please Fill all the Fields",
@@ -33,7 +35,7 @@ const Login = () => {
         isClosable: true,
         position: "top-right",
       });
-      setloading(false);
+      setLoading(false);
       return;
     }
     try {
@@ -42,7 +44,7 @@ const Login = () => {
           "Content-type": "application/json",
         },
       };
-      const { data } = await axios.post(
+      const  data  = await axios.post(
         "/api/v1/auth/login",
         { email, password },
         config
@@ -54,18 +56,19 @@ const Login = () => {
         isClosable: true,
         position: "top-right",
       });
-
-      setloading(false);
+      localStorage.setItem("userInfo", JSON.stringify(data));
+      setLoading(false);
+      history.push("/chats");
     } catch (error) {
       toast({
         title: "Error occured",
-        description: error.response.data.message,
+        description: error.message,
         stats: "error",
         duration: 5000,
         isClosable: true,
         position: "top-right",
       });
-      setloading(false);
+      setLoading(false);
     }
   };
 
