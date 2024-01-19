@@ -4,6 +4,9 @@
   "private": true,
   "proxy": "http://localhost:5000",
   "dependencies": {
+    "@chakra-ui/hooks": "^2.2.1",
+    "@chakra-ui/icon": "^3.2.0",
+    "@chakra-ui/icons": "^2.1.1",
     "@chakra-ui/react": "^2.8.2",
     "@emotion/react": "^11.11.1",
     "@emotion/styled": "^11.11.0",
@@ -13,8 +16,11 @@
     "axios": "^1.6.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-lottie": "^1.2.4",
     "react-router-dom": "^5.3.4",
     "react-scripts": "5.0.1",
+    "react-scrollable-feed": "^2.0.1",
+    "socket.io-client": "^4.7.4",
     "web-vitals": "^2.1.4"
   },
   "scripts": {
@@ -40,5 +46,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.11"
   }
 }
