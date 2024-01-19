@@ -1,4 +1,3 @@
-//send invite request
 const {
   //   ResourceNotFound,
   BadRequest,
