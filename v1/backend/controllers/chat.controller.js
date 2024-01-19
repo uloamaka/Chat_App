@@ -34,11 +34,11 @@ const accessUserChat = async (req, res) => {
   }
   let isChat = await Chat.find({
     $and: [
-      { users: { $elemMatch: { $eq: req.user.id } } },
-      { users: { $elemMatch: { $eq: userId } } },
+      { participants: { $elemMatch: { $eq: req.user.id } } },
+      { participants: { $elemMatch: { $eq: userId } } },
     ],
   })
-    .populate("users", "-password")
+    .populate("participants", "-password")
     .populate("latestMessage");
   isChat = await User.populate(isChat, {
     path: "latestMessage.sender",
@@ -48,7 +48,6 @@ const accessUserChat = async (req, res) => {
     return res.ok(isChat[0]);
   }
   let chatData = {
-    chatName: "sender",
     participants: [req.user.id, userId],
   };
   const newChat = await Chat.create(chatData);

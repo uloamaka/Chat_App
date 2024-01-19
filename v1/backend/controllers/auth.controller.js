@@ -129,7 +129,7 @@ const loginUser = async (req, res, next) => {
       throw new Error("Error comparing passwords");
     }
     if (result) {
-      const maxAge = 1 * 60 * 60;
+      const maxAge = 24 * 60 * 60;
       const token = jwt.sign(
         {
           safeUser,
@@ -145,7 +145,6 @@ const loginUser = async (req, res, next) => {
         maxAge: maxAge * 1000,
       });
     }
-    console.log(safeUser)
     return res.ok({
       message: "Login successful",
       user: safeUser,
