@@ -33,11 +33,7 @@ const ForgetPassword = () => {
           "Content-type": "application/json",
         },
       };
-      const { data } = await axios.post(
-        "/api/v1/auth/forget-password",
-        { email },
-        config
-      );
+      await axios.post("/api/v1/auth/forget-password", { email }, config);
       toast({
         title: "Email sent",
         status: "success",

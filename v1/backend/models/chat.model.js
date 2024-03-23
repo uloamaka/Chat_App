@@ -16,6 +16,10 @@ const ChatSchema = new Schema(
         ref: "Message",
       },
     ],
+    isGroupChat: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true }
 );

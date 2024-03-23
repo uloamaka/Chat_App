@@ -1,8 +1,5 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const nodemailer = require("nodemailer");
-const hbs = require("handlebars");
-const fs = require("fs");
 require("dotenv").config();
 const { z } = require("zod");
 const {
@@ -11,13 +8,12 @@ const {
   usernameSchema,
 } = require("../validators/formRegister.validator");
 const jwtSecret = process.env.jwtSecret;
-const baseUrl = process.env.baseUrl;
+const CLIENT_URL = process.env.baseUrl;
 const User = require("../models/user.model");
 
 const {
   ResourceNotFound,
   BadRequest,
-  ServerError,
   Conflict,
   Unauthorized,
 } = require("../errors/httpErrors");
@@ -28,18 +24,28 @@ const {
   MALFORMED_TOKEN,
   EXPIRED_TOKEN,
 } = require("../errors/httpErrorCodes");
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.EMAIL,
-    pass: process.env.PASS,
-  },
-  tls: {
-    rejectUnauthorized: false,
-  },
-});
 
-const registerUser = async (req, res, next) => {
+const {
+  resetPasswordEmail,
+  sendConfirmationEmail,
+} = require("../utils/mailer/email.service");
+const {
+  acceptInvitationFunc,
+  updateSendersContactFunc,
+} = require("../utils/inviteHelpers");
+
+const registerUser = async (req, res) => {
+  let inviterId;
+  const invite_token = req.query.invite_token;
+  const urlEmail = req.query.receiver_email;
+  if (invite_token) {
+    const updatedInvitation = await acceptInvitationFunc(
+      invite_token,
+      urlEmail
+    );
+    inviterId = updatedInvitation.sender; // Get the inviter's Id after verification
+  }
+  // Validate user Input
   const userSchema = z.object({
     email: emailSchema,
     password: passwordSchema,
@@ -47,11 +53,13 @@ const registerUser = async (req, res, next) => {
   });
   const validUser = userSchema.parse(req.body);
   const { username, email, password } = validUser;
-  const userExist = await User.findOne({ email });
 
+  // Check for existing user
+  const userExist = await User.findOne({ email });
   if (userExist) {
     throw new Conflict("Email already exists", EXISTING_USER_EMAIL);
   }
+
   bcrypt.hash(password, 10, async function (err, hash) {
     if (err) {
       throw new Unauthorized("Error hashing password", MALFORMED_TOKEN);
@@ -60,22 +68,35 @@ const registerUser = async (req, res, next) => {
       username,
       email,
       password: hash,
+      contacts: inviterId ? [inviterId] : [], // Add inviter's Id to user's contact list if inviter's Id is avialable
     });
-    const maxAge = 1 * 60 * 60;
-    const token = jwt.sign({ id: user._id, role: user.role }, jwtSecret, {
-      expiresIn: maxAge, // 1hrs in sec
-    });
+
+    const maxAge = 6 * 60 * 60;
+
+    const token = jwt.sign(
+      {
+        id: user._id,
+        role: user.role,
+        email: user.email,
+        username: user.username,
+      },
+      jwtSecret,
+      {
+        expiresIn: maxAge,
+      }
+    );
     res.cookie("jwt", token, {
       httpOnly: true,
-      maxAge: maxAge * 1000, // 1hrs in ms
+      maxAge: maxAge * 1000,
     });
-    let formattedUser = {
-      username,
-      email,
-      user_id: user._id,
-    };
+
+    let user_id = user._id;
+    // Update sender's contacts if applicable
+    if (invite_token) {
+      updateSendersContactFunc(inviterId, user_id);
+    }
     return res.created({
-      message: formattedUser,
+      message: { username, email, user_id },
     });
   });
 };
@@ -96,22 +117,38 @@ const loginUser = async (req, res, next) => {
       RESOURCE_NOT_FOUND
     );
   }
+    const safeUser = {
+      _id: user._id,
+      role: user.role,
+      email: user.email,
+      username: user.username,
+      pic: user.pic,
+    };
   bcrypt.compare(password, user.password, (err, result) => {
     if (err) {
       throw new Error("Error comparing passwords");
     }
     if (result) {
-      const maxAge = 3 * 60 * 60;
-      const token = jwt.sign({ id: user._id, role: user.role }, jwtSecret, {
-        expiresIn: maxAge, // 3hrs in seconds
-      });
+      const maxAge = 24 * 60 * 60;
+      const token = jwt.sign(
+        {
+          safeUser,
+        },
+        jwtSecret,
+        {
+          expiresIn: maxAge * 1000, 
+        }
+      );
 
       res.cookie("jwt", token, {
         httpOnly: true,
         maxAge: maxAge * 1000,
       });
     }
-    return res.ok({ message: "Login successful", user: user._id });
+    return res.ok({
+      message: "Login successful",
+      user: safeUser,
+    });
   });
 };
 
@@ -148,8 +185,6 @@ const deleteUser = async (req, res, next) => {
   return res.noContent();
 };
 
-const emailTemplate = fs.readFileSync("./templates/resetPassword.hbs", "utf-8");
-const compiledTemplate = hbs.compile(emailTemplate);
 const forgotPassword = async (req, res, next) => {
   const { email } = req.body;
   const user = await User.findOne({ email });
@@ -161,28 +196,14 @@ const forgotPassword = async (req, res, next) => {
     expiresIn: "1h",
   });
   let userId = user._id;
-  // const resetLink = `${baseUrl}api/v1/auth/reset-password/${userId}/${resetToken}`;
-  const resetLink = `http://localhost:3000/api/v1/auth/reset-password/${userId}/${resetToken}`;
-  console.log(resetLink);
+  const resetLink = `${CLIENT_URL}api/v1/auth/reset-password/${userId}/${resetToken}`;
+  //const resetLink = `http://localhost:3000/api/v1/auth/reset-password/${userId}/${resetToken}`;
 
-  const emailContent = compiledTemplate({
-    username: user.email,
-    resetLink,
-  });
-  await transporter.sendMail({
-    from: "<noreply>unique@outlook.com",
-    to: user.email,
-    subject: "Password Reset Link",
-    html: emailContent,
-  });
+  const username = user.username;
+  await resetPasswordEmail(email, username, resetLink);
   return res.ok("Reset link sent successfully");
 };
 
-const confirmationTemplate = fs.readFileSync(
-  "./templates/confirmationEmail.hbs",
-  "utf-8"
-);
-const compiledConfirmationTemplate = hbs.compile(confirmationTemplate);
 const resetPassword = async (req, res) => {
   const { resetToken, userId } = req.params;
   const { newPassword, confirmPassword } = req.body;
@@ -207,7 +228,6 @@ const resetPassword = async (req, res) => {
     throw new Unauthorized(err.message, MALFORMED_TOKEN);
   }
   const currentTime = Math.floor(Date.now() / 1000);
-  //check if the token is still valid
   if (!decodedToken || (decodedToken.exp && decodedToken.exp < currentTime)) {
     throw new Unauthorized("Reset token is expired", EXPIRED_TOKEN);
   }
@@ -221,13 +241,10 @@ const resetPassword = async (req, res) => {
       new: true,
     }
   );
+  const username = user.username,
+    email = user.email;
 
-  await transporter.sendMail({
-    from: "<noreply>unique@outlook.com",
-    to: user.email,
-    subject: "Password Reset Confirmation",
-    html: compiledConfirmationTemplate({ username: user.username }),
-  });
+  await sendConfirmationEmail(email, username);
   return res.ok("Password reset successful");
 };
 

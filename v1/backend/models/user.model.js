@@ -1,14 +1,23 @@
-const Mongoose = require("mongoose");
+const mongoose = require("mongoose");
+const { Schema } = mongoose;
 
-const UserSchema = new Mongoose.Schema(
+const UserSchema = new Schema(
   {
-    username: String,
+    username: {
+      type: String,
+      unique: true,
+    },
     email: {
       type: String,
       unique: true,
     },
     password: {
       type: String,
+    },
+    pic: {
+      type: String,
+      default:
+        "https://res.cloudinary.com/dsffatdpd/image/upload/v1685691602/baca/logo_aqssg3.jpg",
     },
     role: {
       type: String,
@@ -20,6 +29,13 @@ const UserSchema = new Mongoose.Schema(
       enum: ["google", "form"],
       default: "form",
     },
+    contacts: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "User",
+        default: [],
+      },
+    ],
     createdAt: {
       type: Date,
       default: Date.now,
@@ -31,5 +47,5 @@ const UserSchema = new Mongoose.Schema(
   },
   { require: true }
 );
-const User = Mongoose.model("user", UserSchema);
+const User = mongoose.model("User", UserSchema);
 module.exports = User;

@@ -10,9 +10,8 @@ const ContactSchema = new Schema(
     },
     contacts: [
       {
-        type: String,
-        unique: true,
-        trim: true,
+        type: Schema.Types.String,//reference the users emails
+        ref: "User",
       },
     ],
   },
@@ -21,3 +20,9 @@ const ContactSchema = new Schema(
 
 const Contact = mongoose.model("Contact", ContactSchema);
 module.exports = Contact;
+
+
+
+      // type: String,
+        // unique: true,
+        // trim: true,

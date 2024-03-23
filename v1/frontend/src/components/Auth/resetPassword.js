@@ -47,7 +47,7 @@ const ResetPassword = () => {
         confirmPassword,
       };
 
-      const { data } = await axios.post(
+      await axios.post(
         `/api/v1/auth/reset-password/${userId}/${resetToken}`,
         requestData,
         config
