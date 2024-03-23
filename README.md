@@ -208,7 +208,7 @@ Distributed under the MIT License. See `LICENSE.txt` for more information.
 <!-- CONTACT -->
 ## Contact
 
-Your Name - [@ebitegift235](https://x.com/@ebitegift235) - ebitegift235@gmail.com
+Ebite Godsgift Uloamaka - [@ebitegift235](https://x.com/@ebitegift235) - ebitegift235@gmail.com
 
 Project Link: [https://github.com/uloamaka/Chat_App](https://github.com/uloamaka/Chat_App)
 
