@@ -12,7 +12,7 @@ const ChatPage = () => {
     <div style={{ width: "100%" }}>
       {user && <SideDrawer />}
       <Flex
-        direction="row" // Set the direction to row for horizontal alignment
+        direction="row" 
         w="100%"
         h="91.5vh"
         p="10px"
