@@ -16,7 +16,7 @@
     <img src="images/logo.png" alt="Logo" width="80" height="80">
   </a>
 
-<h3 align="center">Todo_Apis</h3>
+<h3 align="center">Chat_App</h3>
 
   <p align="center">
     A complete Chat_App, this app allows you to create one on one room chat as well as multiple room chat, performing CRUD tasks like read, update and delete of messages, chat.
@@ -104,7 +104,7 @@ To get a local copy up and running follow these simple example steps.
 1. Get API Key at env_example.md, change to your own KEY
 2. Clone the repo
    ```sh
-   git clone https://github.com/<your_github_username>/Todo_Apis.git
+   git clone https://github.com/<your_github_username>/Chat_App.git
    ```
 3. Install NPM packages
    ```sh
@@ -172,7 +172,7 @@ _For more examples, please refer to the [Documentation](https://example.com)_
 - [ ] CREATE ROOM (SOCKET IO) 
     - [ ] full CRUD
 
-See the [open issues](https://github.com/github_username/repo_name/issues) for a full list of proposed features (and known issues).
+See the [open issues](https://github.com/uloamaka/Chat_App/issues) for a full list of proposed features (and known issues).
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -210,7 +210,7 @@ Distributed under the MIT License. See `LICENSE.txt` for more information.
 
 Your Name - [@ebitegift235](https://x.com/@ebitegift235) - ebitegift235@gmail.com
 
-Project Link: [https://github.com/uloamaka/Todo_Apis](https://github.com/uloamaka/Todo_Apis)
+Project Link: [https://github.com/uloamaka/Chat_App](https://github.com/uloamaka/Chat_App)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -218,15 +218,16 @@ Project Link: [https://github.com/uloamaka/Todo_Apis](https://github.com/uloamak
 
 <!-- MARKDOWN LINKS & IMAGES -->
 <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
-[contributors-shield]: https://img.shields.io/github/contributors/uloamaka/Todo_Apis.svg?style=for-the-badge
-[contributors-url]: https://github.com/uloamaka/Todo_Apis/graphs/contributors
-[forks-shield]: https://img.shields.io/github/forks/uloamaka/Todo_Apis.svg?style=for-the-badge
-[forks-url]: https://github.com/uloamaka/Todo_Apis/network/members
-[stars-shield]: https://img.shields.io/github/stars/uloamaka/Todo_Apis.svg?style=for-the-badge
-[stars-url]: https://github.com/uloamaka/Todo_Apis/stargazers
-[issues-shield]: https://img.shields.io/github/issues/uloamaka/Todo_Apis.svg?style=for-the-badge
-[issues-url]: https://github.com/uloamaka/Todo_Apis/issues
-[license-shield]: https://img.shields.io/github/license/uloamaka/Todo_Apis.svg?style=for-the-badge
-[license-url]: https://github.com/uloamaka/Todo_Apis/blob/master/LICENSE.txt
+[contributors-shield]: https://img.shields.io/github/contributors/uloamaka/Chat_App.svg?style=for-the-badge
+[contributors-url]: https://github.com/uloamaka/Chat_App/graphs/contributors
+[forks-shield]: https://img.shields.io/github/forks/uloamaka/Chat_App.svg?style=for-the-badge
+[forks-url]: https://github.com/uloamaka/Chat_App/network/members
+[stars-shield]: https://img.shields.io/github/stars/uloamaka/Chat_App.svg?style=for-the-badge
+[stars-url]: https://github.com/uloamaka/Chat_App/stargazers
+[issues-shield]: https://img.shields.io/github/issues/uloamaka/Chat_App.svg?style=for-the-badge
+[issues-url]: https://github.com/uloamaka/Chat_App/issues
+[license-shield]: https://img.shields.io/github/license/uloamaka/Chat_App.svg?style=for-the-badge
+[license-url]: https://github.com/uloamaka/Chat_App/blob/master/LICENSE.txt
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
 [linkedin-url]: www.linkedin.com/in/godsgift235
+
